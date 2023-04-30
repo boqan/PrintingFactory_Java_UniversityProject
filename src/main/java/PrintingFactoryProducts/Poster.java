@@ -1,10 +1,11 @@
 package PrintingFactoryProducts;
 
-public class Poster {
+public class Poster extends Publication{
 
     private String categoryOfPoster;
 
-    public Poster(String categoryOfPoster) {
+    public Poster(String title, int numberOfPages, PageSize pageSize, String categoryOfPoster) {
+        super(title, numberOfPages, pageSize);
         this.categoryOfPoster = categoryOfPoster;
     }
 
