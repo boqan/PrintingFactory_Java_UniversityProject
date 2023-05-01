@@ -7,7 +7,7 @@ public class Book extends Publication{
     private String author;
     private final String isbn;
 
-    public Book(String title, int numberOfPages, PageSize pageSize, String author, String isbn) {
+    public Book(String title, int numberOfPages, PageSize pageSize, String author) {
         super(title, numberOfPages, pageSize);
         this.author = author;
         this.isbn = GenerateIsbn();
