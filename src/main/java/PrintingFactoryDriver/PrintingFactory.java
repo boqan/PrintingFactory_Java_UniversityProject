@@ -4,12 +4,13 @@ import PrintingFactoryEmployees.Employee;
 import PrintingFactoryMachinery.PrintingMachine;
 import PrintingFactoryProducts.PaperType;
 
+import java.util.HashSet;
 import java.util.List;
 
 public class PrintingFactory {
     private String name;
 
-    private List<Employee> employeeList;
+    private HashSet<Employee> employeeList;
 
     private List<PrintingMachine> machinesList;
 
