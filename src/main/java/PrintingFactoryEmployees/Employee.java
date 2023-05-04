@@ -1,8 +1,10 @@
 package PrintingFactoryEmployees;
 
+import java.io.Serializable;
+import java.util.Objects;
 import java.util.Random;
 
-public class Employee {
+public class Employee implements Comparable<Employee>, Serializable {
     private String name;
     private final String EmployeeID;
 
@@ -41,11 +43,29 @@ public class Employee {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Employee employee = (Employee) o;
+        return Objects.equals(getEmployeeID(), employee.getEmployeeID());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getEmployeeID());
+    }
+
+    @Override
     public String toString() {
         return "Employee{" +
                 "name='" + name + '\'' +
                 ", EmployeeID='" + EmployeeID + '\'' +
                 ", BaseSalary=" + BaseSalary +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Employee other) {
+        return this.EmployeeID.compareTo(other.EmployeeID);
     }
 }

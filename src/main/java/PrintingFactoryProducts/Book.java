@@ -1,5 +1,6 @@
 package PrintingFactoryProducts;
 
+import java.util.Comparator;
 import java.util.Random;
 
 public class Book extends Publication{
@@ -30,6 +31,23 @@ public class Book extends Publication{
     public void setAuthor(String author) {
         this.author = author;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    public static Comparator<Book> comparatorByISBN = new Comparator<Book>() {
+        @Override
+        public int compare(Book o1, Book o2) {
+            return o1.isbn.compareTo(o2.isbn);
+        }
+    };
 
     @Override
     public String toString() {

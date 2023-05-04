@@ -5,11 +5,13 @@ import PrintingFactoryExceptions.NoSpaceForMorePaperException;
 import PrintingFactoryProducts.PaperType;
 import PrintingFactoryProducts.Publication;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
+import java.util.Random;
 
-public class PrintingMachine {
+public class PrintingMachine implements Comparable<PrintingMachine>, Serializable {
     private String id;
 
     private final int maximumPaperCapacity;
@@ -20,12 +22,18 @@ public class PrintingMachine {
 
     private boolean printsColour;
 
-    public PrintingMachine(String id, int maximumPaperCapacity, boolean printsColour, int printingSpeed) {
-        this.id = id;
+    public PrintingMachine(int maximumPaperCapacity, boolean printsColour, int printingSpeed) {
+        this.id = GenerateID();
         this.maximumPaperCapacity = maximumPaperCapacity;
         this.printsColour = printsColour;
         this.printingSpeed = printingSpeed;
         this.currentPaperCapacity = 0;
+    }
+
+    private String GenerateID(){
+        Random random = new Random();
+        long randomNumber = (long) (random.nextDouble() * 1_000_000L);
+        return "MachineID" + String.format("%04d", randomNumber);
     }
 
     public String getId() {
@@ -61,6 +69,9 @@ public class PrintingMachine {
     }
 
     public void loadPaperIntoMachine(int numberOfPages) throws NoSpaceForMorePaperException {
+        if(numberOfPages < 0){
+            throw new IllegalArgumentException("Number of pages cannot be negative");
+        }
         if(this.currentPaperCapacity + numberOfPages <= this.maximumPaperCapacity){
             this.currentPaperCapacity += numberOfPages;
         }
@@ -72,8 +83,8 @@ public class PrintingMachine {
     // method finished, file writing needs to be implemented externally.
     public boolean printPublication(Publication publication, PaperType paperType) throws NoPaperInMachineException {
         System.out.println("Printing " + publication.getTitle() + " on " + paperType + " paper."
-                + " Estimated time for printing: " + printingTimeEstimation(publication));
-        System.out.println(this.printsColour ? "Printing in colour" : "Printing in black and white");
+                + " Estimated time for printing: " + printingTimeEstimation(publication) + " hours.");
+        System.out.println(this.printsColour ? "Printing in colour." : "Printing in black and white.");
 
         if(this.currentPaperCapacity == 0) {
             throw new NoPaperInMachineException("No paper in the machine. Maximum paper capacity: " + this.maximumPaperCapacity + " pages.");
@@ -113,10 +124,8 @@ public class PrintingMachine {
 
     public double printingTimeEstimation(Publication publication){
         double est = ((double)publication.getNumberOfPages() / (double)this.printingSpeed) / 60;
-
-        BigDecimal value = BigDecimal.valueOf(est);
-        value.setScale(1, RoundingMode.HALF_UP);
-        double roundedEst = value.doubleValue();
+        // creates a new bigdecimal object with the value of est, rounds it to 1 decimal place and converts it back to a double.
+        double roundedEst = BigDecimal.valueOf(est).setScale(1, RoundingMode.HALF_UP).doubleValue();
         return roundedEst;
     }
 
@@ -134,6 +143,11 @@ public class PrintingMachine {
     }
 
     @Override
+    public int compareTo(PrintingMachine other) {
+        return this.id.compareTo(other.id);
+    }
+
+    @Override
     public String toString() {
         return "PrintingMachine{" +
                 "id='" + id + '\'' +
@@ -143,6 +157,4 @@ public class PrintingMachine {
                 ", printsColour=" + printsColour +
                 '}';
     }
-
-
 }

@@ -1,6 +1,9 @@
 package PrintingFactoryProducts;
 
-public class Publication {
+import java.io.Serializable;
+import java.util.Objects;
+
+public class Publication implements Comparable<Publication>, Serializable {
     private String title;
 
     private int numberOfPages;
@@ -38,11 +41,29 @@ public class Publication {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Publication that = (Publication) o;
+        return Objects.equals(getTitle(), that.getTitle());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getTitle());
+    }
+
+    @Override
     public String toString() {
         return "Publication{" +
                 "title='" + title + '\'' +
                 ", numberOfPages=" + numberOfPages +
                 ", pageSize=" + pageSize +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Publication object) {
+        return this.title.compareTo(object.title);
     }
 }
