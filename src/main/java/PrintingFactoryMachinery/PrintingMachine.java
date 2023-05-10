@@ -1,5 +1,8 @@
 package PrintingFactoryMachinery;
 
+import PrintingFactoryDriver.PrintingFactory;
+import PrintingFactoryExceptions.InsufficientPaperAmountInStorageException;
+import PrintingFactoryExceptions.NegativePaperAmountException;
 import PrintingFactoryExceptions.NoPaperInMachineException;
 import PrintingFactoryExceptions.NoSpaceForMorePaperException;
 import PrintingFactoryProducts.PaperType;
@@ -8,6 +11,7 @@ import PrintingFactoryProducts.Publication;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
@@ -22,12 +26,15 @@ public class PrintingMachine implements Comparable<PrintingMachine>, Serializabl
 
     private boolean printsColour;
 
-    public PrintingMachine(int maximumPaperCapacity, boolean printsColour, int printingSpeed) {
+    private PrintingFactory factory;
+
+    public PrintingMachine(int maximumPaperCapacity, boolean printsColour, int printingSpeed, PrintingFactory factory){
         this.id = GenerateID();
         this.maximumPaperCapacity = maximumPaperCapacity;
         this.printsColour = printsColour;
         this.printingSpeed = printingSpeed;
         this.currentPaperCapacity = 0;
+        this.factory = factory;
     }
 
     private String GenerateID(){
@@ -68,16 +75,22 @@ public class PrintingMachine implements Comparable<PrintingMachine>, Serializabl
         this.printsColour = printsColour;
     }
 
-    public void loadPaperIntoMachine(int numberOfPages) throws NoSpaceForMorePaperException {
+    public void loadPaperIntoMachine(int numberOfPages, PaperType paperType, Map<PaperType,Integer> paperInventory)
+            throws NoSpaceForMorePaperException, InsufficientPaperAmountInStorageException {
         if(numberOfPages < 0){
             throw new IllegalArgumentException("Number of pages cannot be negative");
         }
-        if(this.currentPaperCapacity + numberOfPages <= this.maximumPaperCapacity){
-            this.currentPaperCapacity += numberOfPages;
-        }
-        else{
+        if(this.currentPaperCapacity + numberOfPages >= this.maximumPaperCapacity){
             throw new NoSpaceForMorePaperException("No space for more paper");
         }
+
+        int currentInventory = paperInventory.get(paperType);
+        if(currentInventory < numberOfPages){
+            throw new InsufficientPaperAmountInStorageException("Not enough paper in inventory. Current inventory: " + currentInventory + " pages.");
+        }
+
+        this.currentPaperCapacity += numberOfPages;
+        paperInventory.put(paperType, currentInventory - numberOfPages);
     }
 
     // method finished, file writing needs to be implemented externally.
@@ -112,8 +125,10 @@ public class PrintingMachine implements Comparable<PrintingMachine>, Serializabl
                 System.out.println("Refilling machine...");
 
                 try {
-                    loadPaperIntoMachine(this.maximumPaperCapacity - this.currentPaperCapacity);
-                } catch (NoSpaceForMorePaperException e) {
+                    // math.min insures that we do not go over the maximum paper capacity.
+                    int refillAmount = Math.min(remainingPagesToPrint, this.maximumPaperCapacity - this.currentPaperCapacity);
+                    loadPaperIntoMachine(refillAmount, paperType, factory.getPaperInventory());
+                } catch (NoSpaceForMorePaperException | InsufficientPaperAmountInStorageException e) {
                     throw new RuntimeException(e);
                 }
             }

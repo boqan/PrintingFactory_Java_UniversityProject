@@ -1,15 +1,17 @@
 package PrintingFactoryEmployees;
 
 import PrintingFactoryDriver.PrintingFactory;
+import PrintingFactoryDriver.PrintingFactoryAccounting;
+
 public class Manager extends Employee{
 
-    private PrintingFactory printingFactory;
+    private PrintingFactoryAccounting accounting;
 
     //static e poneje e company wide bonus
     private static double BONUS_PERCENTAGE = 0.1;
-    public Manager(String name, double BaseSalary, PrintingFactory printingFactory) {
+    public Manager(String name, double BaseSalary, PrintingFactoryAccounting accounting) {
         super(name, BaseSalary);
-        this.printingFactory = printingFactory;
+        this.accounting = accounting;
         this.setBaseSalary(this.calculateSalaryWithBonus());
     }
 
@@ -24,7 +26,7 @@ public class Manager extends Employee{
 
     // takes the income of the factory, compares to the bonus target and if met, returns true
     public boolean checkIfEligibleForBonus(){
-        return this.printingFactory.getIncome() > this.printingFactory.getBonusIncomeTarget();
+        return this.accounting.getIncome() > this.accounting.getBonusIncomeTarget();
     }
     // calculates the salary of the manager, if eligible for bonus, adds the bonus
     public double calculateSalaryWithBonus() {
@@ -48,7 +50,7 @@ public class Manager extends Employee{
     @Override
     public String toString() {
         return "Manager{" +
-                "printingFactory=" + printingFactory +
+                "accounting=" + accounting +
                 "} " + super.toString();
     }
 }

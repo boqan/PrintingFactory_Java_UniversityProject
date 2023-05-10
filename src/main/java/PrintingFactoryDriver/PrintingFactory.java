@@ -1,18 +1,17 @@
 package PrintingFactoryDriver;
 
 import PrintingFactoryEmployees.Employee;
-import PrintingFactoryExceptions.NegativePaperAmountException;
+import PrintingFactoryExceptions.*;
 import PrintingFactoryMachinery.PrintingMachine;
 import PrintingFactoryProducts.PaperType;
+import PrintingFactoryProducts.Publication;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.io.Serializable;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class PrintingFactory {
+public class PrintingFactory implements Comparable<PrintingFactory>, Serializable {
     private String name;
 
     private HashSet<Employee> employeeList;
@@ -21,50 +20,26 @@ public class PrintingFactory {
 
     private Map<PaperType, Integer> paperInventory;
 
-    private Map<PaperType, Double> paperPrices;
+    private PrintingFactoryAccounting accounting;
 
-    private double SalaryExpenses;
 
-    private double PaperExpenses;
 
-    private double income;
-
-    private double bonusIncomeTarget;
-
-    public PrintingFactory(String name, double bonusIncomeTarget) {
+    public PrintingFactory(String name, PrintingFactoryAccounting accounting) {
         this.name = name;
-        this.bonusIncomeTarget = bonusIncomeTarget;
         this.employeeList = new HashSet<>();
         this.machinesList = new HashSet<>();
         this.paperInventory = new HashMap<>();
-        this.paperPrices = new HashMap<>();
-        initializePaperPrices();
         this.paperInventory =
                 Stream.of(PaperType.values())
                         .collect(Collectors.toMap(paperType -> paperType, paperType -> 0));
-        this.SalaryExpenses = 0;
-        this.PaperExpenses = 0;
-        this.income = 0;
+        this.accounting = accounting;
+
     }
 
-    //////////////////////////Paper prices helper functions, getters and setters//////////////////////////////////////////
-    public void initializePaperPrices(){
-        this.paperPrices.put(PaperType.GLOSSY, 0.5);
-        this.paperPrices.put(PaperType.NORMAL, 0.25);
-        this.paperPrices.put(PaperType.NEWSPAPER, 0.1);
-    }
-
-    public void setPaperPrice(PaperType paperType, double price){
-        this.paperPrices.put(paperType, price);
-    }
-
-    public double getPaperPrice(PaperType paperType){
-        return this.paperPrices.get(paperType);
-    }
-    ////////////////////////// add and remove functions for employees, machines and paper inventory//////////////////////////////////////////
+    //----------------------------add and remove functions for employees, machines and paper inventory----------------------------
     public void addEmployee(Employee employee){
         this.employeeList.add(employee);
-        this.SalaryExpenses += employee.getBaseSalary();
+        this.accounting.calculateIndividualSalaryExpenses(employee);
     }
     public void addMachine(PrintingMachine machine){
         this.machinesList.add(machine);
@@ -76,18 +51,18 @@ public class PrintingFactory {
         }
         int currentAmount = this.paperInventory.get(paperType);
         this.paperInventory.put(paperType, currentAmount + amount);
-        this.PaperExpenses = calculatePaperExpenses(amount, paperType);
+        this.accounting.calculatePaperExpenses(amount, paperType);
         return true;
     }
 
     public void removeEmployee(Employee employee){
         this.employeeList.remove(employee);
-        this.SalaryExpenses -= employee.getBaseSalary();
+        accounting.RemoveIndividualSalaryExpenses(employee);
     }
     public void removeMachine(PrintingMachine machine){
         this.machinesList.remove(machine);
     }
-    // remove paper from inventory, does not do add or remove anything to the expenses field of the class
+    // remove paper from inventory, does not do add or remove anything to the expenses field of the accounting class
     public boolean removePaperTypeAmountFromInventory(PaperType paperType, int amount) throws NegativePaperAmountException {
         if(amount < 0){
             throw new NegativePaperAmountException("Amount of paper cannot be negative");
@@ -96,25 +71,8 @@ public class PrintingFactory {
         this.paperInventory.put(paperType, currentAmount - amount);
         return true;
     }
-    ///////////////////////////calculate expenses and income//////////////////////////////////////////
 
-    // simply calculates the actual expense, does not add or remove anything to the expenses field of the class
-    public double calculatePaperExpenses(int amount, PaperType paperType){
-        return amount * this.paperPrices.get(paperType);
-    }
-
-    // calculates and adds the income expense of a single employee
-    public boolean calculateIndividualSalaryExpenses(Employee employee){
-        this.SalaryExpenses += employee.getBaseSalary();
-        return true;
-    }
-    // calculates and adds the income expense of all the employees in the company
-    public double calculateMonthlySalaryExpensesTotal(){
-        return this.employeeList.stream()
-        .mapToDouble(Employee::getBaseSalary)
-        .sum();
-    }
-    ///////////////////////////getters and setters//////////////////////////////////////////
+    //----------------------------getters and setters----------------------------
 
     public String getName() {
         return name;
@@ -132,41 +90,74 @@ public class PrintingFactory {
         return paperInventory;
     }
 
-    public Map<PaperType, Double> getPaperPrices() {
-        return paperPrices;
-    }
-
-    public double getSalaryExpenses() {
-        return SalaryExpenses;
-    }
-
-    public double getPaperExpenses() {
-        return PaperExpenses;
-    }
-
-    public double getIncome() {
-        return income;
-    }
-
-    public double getBonusIncomeTarget() {
-        return bonusIncomeTarget;
-    }
 
     public void setName(String name) {
         this.name = name;
     }
 
-    public void setIncome(double income) {
-        this.income = income;
+    //----------------------------printing functions----------------------------
+    public boolean printingOrder(int amountOfCopies, PaperType paperType, Publication publication, boolean colorPrinting)
+            throws InsufficientPaperAmountInStorageException, NoSuitableMachineException
+    {
+        int currentAmountOfPaper = paperInventory.get(paperType);
+        // if there is not enough paper in storage, throw exception
+        if(currentAmountOfPaper < amountOfCopies){
+            throw new InsufficientPaperAmountInStorageException("Not enough paper for the print in storage");
+        }
+        // search for suitableMachine in the list in the factory
+        PrintingMachine suitableMachine = machinesList.stream()
+                .filter(machine -> machine.isPrintsColour() == colorPrinting)
+                .findFirst()
+                .orElse(null);
+
+        // if no suitable machine is found, throw exception
+        if(suitableMachine == null){
+            throw new NoSuitableMachineException("No suitable machine for the print");
+        }
+
+        // try to load paper into machine and print the publication
+        try {
+            suitableMachine.loadPaperIntoMachine(amountOfCopies, paperType, this.getPaperInventory());
+            suitableMachine.printPublication(publication, paperType);
+        } catch (NoPaperInMachineException | NoSpaceForMorePaperException | InsufficientPaperAmountInStorageException e) {
+            throw new RuntimeException(e);
+        }
+        // if everything is successful, try to remove the paper from the inventory
+        try {
+            this.removePaperTypeAmountFromInventory(paperType, amountOfCopies);
+        } catch (NegativePaperAmountException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("Printing order successful");
+        return true;
     }
 
-    public void setBonusIncomeTarget(double bonusIncomeTarget) {
-        this.bonusIncomeTarget = bonusIncomeTarget;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PrintingFactory that = (PrintingFactory) o;
+        return Objects.equals(getName(), that.getName());
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName());
+    }
 
+    @Override
+    public int compareTo(PrintingFactory object) {
+        return this.getName().compareTo(object.getName());
+    }
 
-    //implement priting function with expenses and everything
-    // implement otstupka function
-    // create full pojo class, getters setters equals hashcode comparable tostring etc
+    @Override
+    public String toString() {
+        return "PrintingFactory{" +
+                "name='" + name + '\'' +
+                ", employeeList=" + employeeList +
+                ", machinesList=" + machinesList +
+                ", paperInventory=" + paperInventory +
+                ", accounting=" + accounting +
+                '}';
+    }
 }
