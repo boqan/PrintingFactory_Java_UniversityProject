@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class PrintingFactoryAccounting implements Comparable<PrintingFactoryAccounting>, Serializable {
+public class PrintingFactoryAccounting implements Comparable<PrintingFactoryAccounting>, Serializable, Accounting {
 
     private String name;
     private Map<PaperType, Double> paperPrices;
