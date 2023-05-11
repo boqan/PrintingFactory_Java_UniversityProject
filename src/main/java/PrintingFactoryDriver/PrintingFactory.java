@@ -51,7 +51,7 @@ public class PrintingFactory implements Comparable<PrintingFactory>, Serializabl
         }
         int currentAmount = this.paperInventory.get(paperType);
         this.paperInventory.put(paperType, currentAmount + amount);
-        this.accounting.calculatePaperExpenses(amount, paperType);
+        this.accounting.addPaperExpense(amount, paperType);
         return true;
     }
 
@@ -64,7 +64,7 @@ public class PrintingFactory implements Comparable<PrintingFactory>, Serializabl
     }
     // remove paper from inventory, does not do add or remove anything to the expenses field of the accounting class
     public boolean removePaperTypeAmountFromInventory(PaperType paperType, int amount) throws NegativePaperAmountException {
-        if(amount < 0){
+        if(amount < 0 || amount > this.paperInventory.get(paperType)){
             throw new NegativePaperAmountException("Amount of paper cannot be negative");
         }
         int currentAmount = this.paperInventory.get(paperType);

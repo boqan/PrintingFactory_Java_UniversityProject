@@ -90,7 +90,6 @@ public class PrintingMachine implements Comparable<PrintingMachine>, Serializabl
         }
 
         this.currentPaperCapacity += numberOfPages;
-        paperInventory.put(paperType, currentInventory - numberOfPages);
     }
 
     // method finished, file writing needs to be implemented externally.
