@@ -71,42 +71,40 @@ class PrintingMachineTest {
     }
 
     @Test
-    public void PrintPublicationNoPaperTest(){
+    public void printPagesNoPaperTest() {
         Book book2 = new Book("Harry Potter", 300, PageSize.A2, "JK Rowling");
         assertThrows(NoPaperInMachineException.class, () -> {
-            printingMachine1.printPublication(book2, PaperType.NORMAL);
+            printingMachine1.printPages(book2.getNumberOfPages(), PaperType.NORMAL, book2);
         });
     }
+
     @Test
-    public void PrintPublicationEnoughPaperTest(){
+    public void printPagesEnoughPaperTest() {
         try {
             printingMachine1.loadPaperIntoMachine(500, PaperType.GLOSSY, printingFactory1.getPaperInventory());
         } catch (NoSpaceForMorePaperException | InsufficientPaperAmountInStorageException e) {
             throw new RuntimeException(e);
         }
-        assertDoesNotThrow(() ->{
-            printingMachine1.printPublication(book1, PaperType.GLOSSY);
+        assertDoesNotThrow(() -> {
+            printingMachine1.printPages(book1.getNumberOfPages(), PaperType.GLOSSY, book1);
         });
     }
 
     @Test
-    public void PrintPublicationStopToRefillDuringPrintTest(){
+    public void refillMachineDuringPrintTest() {
         try {
             printingMachine1.loadPaperIntoMachine(250, PaperType.GLOSSY, printingFactory1.getPaperInventory());
         } catch (NoSpaceForMorePaperException | InsufficientPaperAmountInStorageException e) {
             throw new RuntimeException(e);
         }
         book1.setNumberOfPages(1000);
+        printingMachine1.refillMachine(book1.getNumberOfPages(), PaperType.GLOSSY);
 
-        try {
-            assertTrue(printingMachine1.printPublication(book1, PaperType.GLOSSY));
-        } catch (NoPaperInMachineException e) {
-            throw new RuntimeException(e);
-        }
+        assertEquals(printingMachine1.getCurrentPaperCapacity(), printingMachine1.getMaximumPaperCapacity());
     }
 
     @Test
-    public void PrintPublicationNotEnoughPaperInInventoryTest() {
+    public void refillMachineNotEnoughPaperInInventoryTest() {
         printingFactory1.getPaperInventory().put(PaperType.GLOSSY, 500); // Reduce the inventory to 500 pages
         book1.setNumberOfPages(600);
 
@@ -118,7 +116,7 @@ class PrintingMachineTest {
 
         // Expecting a NegativePaperAmountException due to not enough paper in the inventory for the inbuilt refill
         // but it is handled in the method and is throwing a runtimexception, so we catch that
-        Exception exception = assertThrows(RuntimeException.class, () -> printingMachine1.printPublication(book1, PaperType.GLOSSY));
+        Exception exception = assertThrows(RuntimeException.class, () -> printingMachine1.refillMachine(book1.getNumberOfPages(), PaperType.GLOSSY));
         assertTrue(exception.getCause() instanceof InsufficientPaperAmountInStorageException);
     }
 

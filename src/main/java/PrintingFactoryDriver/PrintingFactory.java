@@ -117,6 +117,7 @@ public class PrintingFactory implements Comparable<PrintingFactory>, Serializabl
 
         // try to load paper into machine and print the publication
         try {
+
             suitableMachine.loadPaperIntoMachine(amountOfCopies, paperType, this.getPaperInventory());
             suitableMachine.printPublication(publication, paperType);
         } catch (NoPaperInMachineException | NoSpaceForMorePaperException | InsufficientPaperAmountInStorageException e) {

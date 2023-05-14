@@ -1,10 +1,12 @@
 package PrintingFactoryEmployees;
 
+import Interfaces.Generatable;
+
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.Random;
 
-public class Employee implements Comparable<Employee>, Serializable {
+public class Employee implements Comparable<Employee>, Serializable, Generatable {
     private String name;
     private final String EmployeeID;
 
@@ -12,7 +14,7 @@ public class Employee implements Comparable<Employee>, Serializable {
 
     public Employee(String name, double BaseSalary) {
         this.name = name;
-        this.EmployeeID = GenerateID();
+        this.EmployeeID = generateID();
         this.BaseSalary = BaseSalary;
     }
 
@@ -32,7 +34,7 @@ public class Employee implements Comparable<Employee>, Serializable {
         this.name = name;
     }
 
-    private String GenerateID(){
+    public String generateID(){
         Random random = new Random();
         long randomNumber = (long) (random.nextDouble() * 1_000_000L);
         return "ID" + String.format("%05d", randomNumber);
