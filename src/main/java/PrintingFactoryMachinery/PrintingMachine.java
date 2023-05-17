@@ -75,25 +75,7 @@ public class PrintingMachine implements Comparable<PrintingMachine>, Serializabl
         this.printsColour = printsColour;
     }
 
-    public void loadPaperIntoMachine(int numberOfPages, PaperType paperType, Map<PaperType,Integer> paperInventory)
-            throws NoSpaceForMorePaperException, InsufficientPaperAmountInStorageException {
-        if(numberOfPages < 0){
-            throw new IllegalArgumentException("Number of pages cannot be negative");
-        }
-        if(this.currentPaperCapacity + numberOfPages > this.maximumPaperCapacity){
-            throw new NoSpaceForMorePaperException("No space for more paper");
-        }
-
-        int currentInventory = paperInventory.get(paperType);
-        if(currentInventory < numberOfPages){
-            throw new InsufficientPaperAmountInStorageException("Not enough paper in inventory. Current inventory: " + currentInventory + " pages.");
-        }
-
-        this.currentPaperCapacity += numberOfPages;
-    }
-
-
-//    public boolean printPublication(Publication publication, PaperType paperType) throws NoPaperInMachineException {
+    //    public boolean printPublication(Publication publication, PaperType paperType) throws NoPaperInMachineException {
 //        System.out.println("Printing " + publication.getTitle() + " on " + paperType + " paper."
 //                + " Estimated time for printing: " + printingTimeEstimation(publication) + " hours.");
 //        System.out.println(this.printsColour ? "Printing in colour." : "Printing in black and white.");
@@ -137,6 +119,24 @@ public class PrintingMachine implements Comparable<PrintingMachine>, Serializabl
 //    }
 
     // big method broken down into three separate methods for better readability and SOLID adherence
+
+    public void loadPaperIntoMachine(int numberOfPages, PaperType paperType, Map<PaperType,Integer> paperInventory)
+            throws NoSpaceForMorePaperException, InsufficientPaperAmountInStorageException {
+        if(numberOfPages < 0){
+            throw new IllegalArgumentException("Number of pages cannot be negative");
+        }
+        if(this.currentPaperCapacity + numberOfPages > this.maximumPaperCapacity){
+            throw new NoSpaceForMorePaperException("No space for more paper");
+        }
+
+        int currentInventory = paperInventory.get(paperType);
+        if(currentInventory < numberOfPages){
+            throw new InsufficientPaperAmountInStorageException("Not enough paper in inventory. Current inventory: " + currentInventory + " pages.");
+        }
+
+        this.currentPaperCapacity += numberOfPages;
+    }
+
     public boolean printPublication(Publication publication, PaperType paperType) throws NoPaperInMachineException {
         System.out.println("Printing " + publication.getTitle() + " on " + paperType + " paper."
                 + " Estimated time for printing: " + printingTimeEstimation(publication) + " hours.");

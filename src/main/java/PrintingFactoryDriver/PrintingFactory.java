@@ -3,11 +3,13 @@ package PrintingFactoryDriver;
 import PrintingFactoryEmployees.Employee;
 import PrintingFactoryExceptions.*;
 import PrintingFactoryMachinery.PrintingMachine;
+import PrintingFactoryProducts.PageSize;
 import PrintingFactoryProducts.PaperType;
 import PrintingFactoryProducts.Publication;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,7 +20,7 @@ public class PrintingFactory implements Comparable<PrintingFactory>, Serializabl
 
     private HashSet<PrintingMachine> machinesList;
 
-    private Map<PaperType, Integer> paperInventory;
+    private Map<Paper, Integer> paperInventory;
 
     private PrintingFactoryAccounting accounting;
 
@@ -29,11 +31,11 @@ public class PrintingFactory implements Comparable<PrintingFactory>, Serializabl
         this.employeeList = new HashSet<>();
         this.machinesList = new HashSet<>();
         this.paperInventory = new HashMap<>();
-        this.paperInventory =
-                Stream.of(PaperType.values())
-                        .collect(Collectors.toMap(paperType -> paperType, paperType -> 0));
+        this.paperInventory = Arrays.stream(PageSize.values())
+                        .flatMap(pageSize -> Arrays.stream(PaperType.values())
+                                .map(paperType -> new Paper(pageSize, paperType)))
+                        .collect(Collectors.toMap(Function.identity(), paper -> 0));
         this.accounting = accounting;
-
     }
 
     //----------------------------add and remove functions for employees, machines and paper inventory----------------------------
@@ -45,13 +47,13 @@ public class PrintingFactory implements Comparable<PrintingFactory>, Serializabl
         this.machinesList.add(machine);
     }
     // adds paper to inventory, if successful it also adds the expense for the bought paper to paperexpenses
-    public boolean addPaperTypeAmountToInventory(PaperType paperType, int amount) throws NegativePaperAmountException {
+    public boolean addPaperTypeAmountToInventory(Paper paper, int amount) throws NegativePaperAmountException {
         if(amount < 0){
             throw new NegativePaperAmountException("Amount of paper cannot be negative");
         }
-        int currentAmount = this.paperInventory.get(paperType);
-        this.paperInventory.put(paperType, currentAmount + amount);
-        this.accounting.addPaperExpense(amount, paperType);
+        int currentAmount = this.paperInventory.get(paper);
+        this.paperInventory.put(paper, currentAmount + amount);
+        this.accounting.addPaperExpense(amount, paper);
         return true;
     }
 
