@@ -4,6 +4,7 @@ import PrintingFactoryEmployees.*;
 import PrintingFactoryExceptions.InsufficientPaperAmountInStorageException;
 import PrintingFactoryExceptions.NegativePaperAmountException;
 import PrintingFactoryExceptions.NoSuitableMachineException;
+import PrintingFactoryExceptions.PaperMismatchException;
 import PrintingFactoryProducts.*;
 import PrintingFactoryMachinery.*;
 
@@ -114,6 +115,40 @@ public class Main {
                     System.out.println("Choose the maximum printing speed of the machine(int value) : ");
                     int maxPrintingSpeed = scanner.nextInt();
 
+                    System.out.println("Choose the paper type for the machine :");
+                    System.out.println("1. Glossy");
+                    System.out.println("2. Newspaper");
+                    System.out.println("3. Normal");
+                    int case3_option_papertype = scanner.nextInt();
+                    scanner.nextLine();
+
+                    PaperType paperType = switch (case3_option_papertype) {
+                        case 1 -> PaperType.GLOSSY;
+                        case 2 -> PaperType.NEWSPAPER;
+                        case 3 -> PaperType.NORMAL;
+                        default -> PaperType.NORMAL;
+                    };
+
+                    System.out.println("Please provide the paper size of the machine:");
+                    System.out.println("1. A1");
+                    System.out.println("2. A2");
+                    System.out.println("3. A3");
+                    System.out.println("4. A4");
+                    System.out.println("5. A5");
+                    int case3_option_pagesize = scanner.nextInt();
+                    scanner.nextLine();
+
+                    PageSize pageSize = switch (case3_option_pagesize) {
+                        case 1 -> PageSize.A1;
+                        case 2 -> PageSize.A2;
+                        case 3 -> PageSize.A3;
+                        case 4 -> PageSize.A4;
+                        case 5 -> PageSize.A5;
+                        default -> PageSize.A2;
+                    };
+
+                    Paper paper = new Paper(pageSize, paperType);
+
                     if(case3_option == 1) {
                         factory.addMachine(new PrintingMachine(maxPaperCapacity, true ,maxPrintingSpeed, factory));
                         System.out.println("Color printing machine added successfully");
@@ -195,7 +230,7 @@ public class Main {
                             System.out.println("Invalid option. Please choose a valid option from the menu.");
                     }while (case5_option_papertype != 1 && case5_option_papertype != 2 && case5_option_papertype != 3);
 
-                    PaperType paperType = switch (case5_option_papertype) {
+                    paperType = switch (case5_option_papertype) {
                         case 1 -> PaperType.GLOSSY;
                         case 2 -> PaperType.NEWSPAPER;
                         case 3 -> PaperType.NORMAL;
@@ -218,7 +253,7 @@ public class Main {
 
                     } while(case5_option_pagesize != 1 && case5_option_pagesize != 2 && case5_option_pagesize != 3 && case5_option_pagesize != 4 && case5_option_pagesize != 5);
 
-                    PageSize pageSize = switch (case5_option_pagesize) {
+                    pageSize = switch (case5_option_pagesize) {
                         case 1 -> pageSize = PageSize.A1;
                         case 2 -> pageSize = PageSize.A2;
                         case 3 -> pageSize = PageSize.A3;
@@ -246,15 +281,17 @@ public class Main {
 
                         Book book = new Book(title, numberOfPages, pageSize, author);
 
+                        paper = new Paper(pageSize, paperType);
                         try {
-                            factory.addPaperTypeAmountToInventory(paperType, numberOfPages + 100);
+                            factory.addPaperAmountToInventory(paper, numberOfPages + 100);
                         } catch (NegativePaperAmountException e) {
                             throw new RuntimeException(e);
                         }
 
                         try {
-                            factory.printingOrder(numberOfPages, paperType, book, isColor);
-                        } catch (InsufficientPaperAmountInStorageException | NoSuitableMachineException e) {
+                            factory.printingOrder(numberOfPages, paper, book, isColor);
+                        } catch (InsufficientPaperAmountInStorageException | NoSuitableMachineException |
+                                 PaperMismatchException e) {
                             throw new RuntimeException(e);
                         }
                     }
@@ -263,15 +300,17 @@ public class Main {
                         System.out.println("Please provide the category of the poster (string) :");
                         String category = scanner.nextLine();
                         Poster poster = new Poster(title, numberOfPages, pageSize, category);
+                        paper = new Paper(pageSize, paperType);
                         try {
-                            factory.addPaperTypeAmountToInventory(paperType, numberOfPages + 100);
+                            factory.addPaperAmountToInventory(paper, numberOfPages + 100);
                         } catch (NegativePaperAmountException e) {
                             throw new RuntimeException(e);
                         }
 
                         try {
-                            factory.printingOrder(numberOfPages, paperType, poster, isColor);
-                        } catch (InsufficientPaperAmountInStorageException | NoSuitableMachineException e) {
+                            factory.printingOrder(numberOfPages, paper, poster, isColor);
+                        } catch (InsufficientPaperAmountInStorageException | NoSuitableMachineException |
+                                 PaperMismatchException e) {
                             throw new RuntimeException(e);
                         }
                     }
@@ -292,15 +331,17 @@ public class Main {
                         }
 
                         Newspaper newspaper = new Newspaper(title, numberOfPages, pageSize, redactor, localDate);
+                        paper = new Paper(pageSize, paperType);
                         try {
-                            factory.addPaperTypeAmountToInventory(paperType, numberOfPages + 100);
+                            factory.addPaperAmountToInventory(paper, numberOfPages + 100);
                         } catch (NegativePaperAmountException e) {
                             throw new RuntimeException(e);
                         }
 
                         try {
-                            factory.printingOrder(numberOfPages, paperType, newspaper, isColor);
-                        } catch (InsufficientPaperAmountInStorageException | NoSuitableMachineException e) {
+                            factory.printingOrder(numberOfPages, paper, newspaper, isColor);
+                        } catch (InsufficientPaperAmountInStorageException | NoSuitableMachineException |
+                                 PaperMismatchException e) {
                             throw new RuntimeException(e);
                         }
                     }

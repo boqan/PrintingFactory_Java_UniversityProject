@@ -47,7 +47,7 @@ public class PrintingFactory implements Comparable<PrintingFactory>, Serializabl
         this.machinesList.add(machine);
     }
     // adds paper to inventory, if successful it also adds the expense for the bought paper to paperexpenses
-    public boolean addPaperTypeAmountToInventory(Paper paper, int amount) throws NegativePaperAmountException {
+    public boolean addPaperAmountToInventory(Paper paper, int amount) throws NegativePaperAmountException {
         if(amount < 0){
             throw new NegativePaperAmountException("Amount of paper cannot be negative");
         }
@@ -65,12 +65,12 @@ public class PrintingFactory implements Comparable<PrintingFactory>, Serializabl
         this.machinesList.remove(machine);
     }
     // remove paper from inventory, does not do add or remove anything to the expenses field of the accounting class
-    public boolean removePaperTypeAmountFromInventory(PaperType paperType, int amount) throws NegativePaperAmountException {
-        if(amount < 0 || amount > this.paperInventory.get(paperType)){
+    public boolean removePaperAmountFromInventory(Paper paper, int amount) throws NegativePaperAmountException {
+        if(amount < 0 || amount > this.paperInventory.get(paper)){
             throw new NegativePaperAmountException("Amount of paper cannot be negative");
         }
-        int currentAmount = this.paperInventory.get(paperType);
-        this.paperInventory.put(paperType, currentAmount - amount);
+        int currentAmount = this.paperInventory.get(paper);
+        this.paperInventory.put(paper, currentAmount - amount);
         return true;
     }
 
@@ -88,7 +88,7 @@ public class PrintingFactory implements Comparable<PrintingFactory>, Serializabl
         return machinesList;
     }
 
-    public Map<PaperType, Integer> getPaperInventory() {
+    public Map<Paper, Integer> getPaperInventory() {
         return paperInventory;
     }
 
@@ -98,42 +98,43 @@ public class PrintingFactory implements Comparable<PrintingFactory>, Serializabl
     }
 
     //----------------------------printing functions----------------------------
-    public boolean printingOrder(int amountOfCopies, PaperType paperType, Publication publication, boolean colorPrinting)
-            throws InsufficientPaperAmountInStorageException, NoSuitableMachineException
-    {
-        int currentAmountOfPaper = paperInventory.get(paperType);
-        // if there is not enough paper in storage, throw exception
+    public boolean printingOrder(int amountOfCopies, Paper paper, Publication publication, boolean colorPrinting)
+            throws InsufficientPaperAmountInStorageException, NoSuitableMachineException, PaperMismatchException {
+        // checks for the paper amount in storage
+        int currentAmountOfPaper = paperInventory.get(paper);
         if(currentAmountOfPaper < amountOfCopies){
             throw new InsufficientPaperAmountInStorageException("Not enough paper for the print in storage");
         }
-        // search for suitableMachine in the list in the factory
+        // checks for a suitable machine
         PrintingMachine suitableMachine = machinesList.stream()
                 .filter(machine -> machine.isPrintsColour() == colorPrinting)
                 .findFirst()
                 .orElse(null);
-
-        // if no suitable machine is found, throw exception
+        // if no suitable machine is found, throws an exception
         if(suitableMachine == null){
             throw new NoSuitableMachineException("No suitable machine for the print");
         }
-
-        // try to load paper into machine and print the publication
+        // checks if the machine has enough paper for the print
+        if(publication.getPageSize() != paper.getPageSize()){
+            throw new PaperMismatchException("Paper size does not match publication size");
+        }
+        // if all checks are passed, the print is executed
         try {
-
-            suitableMachine.loadPaperIntoMachine(amountOfCopies, paperType, this.getPaperInventory());
-            suitableMachine.printPublication(publication, paperType);
+            suitableMachine.loadPaperIntoMachine(amountOfCopies, paper, this.getPaperInventory());
+            suitableMachine.printPublication(publication, paper);
         } catch (NoPaperInMachineException | NoSpaceForMorePaperException | InsufficientPaperAmountInStorageException e) {
             throw new RuntimeException(e);
         }
-        // if everything is successful, try to remove the paper from the inventory
+        // if the print is successful, the paper is removed from the inventory
         try {
-            this.removePaperTypeAmountFromInventory(paperType, amountOfCopies);
+            this.removePaperAmountFromInventory(paper, amountOfCopies);
         } catch (NegativePaperAmountException e) {
             throw new RuntimeException(e);
         }
         System.out.println("Printing order successful");
         return true;
     }
+
 
     @Override
     public boolean equals(Object o) {

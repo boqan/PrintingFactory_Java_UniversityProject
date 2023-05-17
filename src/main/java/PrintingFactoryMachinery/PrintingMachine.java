@@ -1,6 +1,7 @@
 package PrintingFactoryMachinery;
 
 import Interfaces.Generatable;
+import PrintingFactoryDriver.Paper;
 import PrintingFactoryDriver.PrintingFactory;
 import PrintingFactoryExceptions.InsufficientPaperAmountInStorageException;
 import PrintingFactoryExceptions.NoPaperInMachineException;
@@ -120,7 +121,7 @@ public class PrintingMachine implements Comparable<PrintingMachine>, Serializabl
 
     // big method broken down into three separate methods for better readability and SOLID adherence
 
-    public void loadPaperIntoMachine(int numberOfPages, PaperType paperType, Map<PaperType,Integer> paperInventory)
+    public void loadPaperIntoMachine(int numberOfPages, Paper paper, Map<Paper,Integer> paperInventory)
             throws NoSpaceForMorePaperException, InsufficientPaperAmountInStorageException {
         if(numberOfPages < 0){
             throw new IllegalArgumentException("Number of pages cannot be negative");
@@ -128,36 +129,32 @@ public class PrintingMachine implements Comparable<PrintingMachine>, Serializabl
         if(this.currentPaperCapacity + numberOfPages > this.maximumPaperCapacity){
             throw new NoSpaceForMorePaperException("No space for more paper");
         }
-
-        int currentInventory = paperInventory.get(paperType);
+        int currentInventory = paperInventory.get(paper);
         if(currentInventory < numberOfPages){
             throw new InsufficientPaperAmountInStorageException("Not enough paper in inventory. Current inventory: " + currentInventory + " pages.");
         }
-
         this.currentPaperCapacity += numberOfPages;
     }
 
-    public boolean printPublication(Publication publication, PaperType paperType) throws NoPaperInMachineException {
-        System.out.println("Printing " + publication.getTitle() + " on " + paperType + " paper."
+    public boolean printPublication(Publication publication, Paper paper) throws NoPaperInMachineException {
+        System.out.println("Printing " + publication.getTitle() + " on " + paper.getPaperType() + " size " + paper.getPageSize() + " paper."
                 + " Estimated time for printing: " + printingTimeEstimation(publication) + " hours.");
         System.out.println(this.printsColour ? "Printing in colour." : "Printing in black and white.");
-
         if (this.currentPaperCapacity == 0) {
             throw new NoPaperInMachineException("No paper in the machine. Maximum paper capacity: " + this.maximumPaperCapacity + " pages.");
         }
         int remainingPagesToPrint = publication.getNumberOfPages();
-
         while (remainingPagesToPrint > 0) {
-            remainingPagesToPrint = printPages(remainingPagesToPrint, paperType, publication);
+            remainingPagesToPrint = printPages(remainingPagesToPrint, paper, publication);
             if (remainingPagesToPrint > 0) {
-                refillMachine(remainingPagesToPrint, paperType);
+                refillMachine(remainingPagesToPrint, paper);
             }
         }
         System.out.println("Printing process completed!");
         return true;
     }
 
-    public int printPages(int remainingPagesToPrint, PaperType paperType, Publication publication) {
+    public int printPages(int remainingPagesToPrint, Paper paper, Publication publication) {
         if (this.currentPaperCapacity >= remainingPagesToPrint) {
             System.out.println("Printing " + remainingPagesToPrint + " pages");
             this.currentPaperCapacity -= publication.getNumberOfPages();
@@ -170,21 +167,17 @@ public class PrintingMachine implements Comparable<PrintingMachine>, Serializabl
         return remainingPagesToPrint;
     }
 
-    public void refillMachine(int remainingPagesToPrint, PaperType paperType) {
+    public void refillMachine(int remainingPagesToPrint, Paper paper) {
         System.out.println("The machine ran out of paper. Please refill the machine.");
         System.out.println("Remaining pages to print: " + remainingPagesToPrint);
         System.out.println("Refilling machine...");
-
         try {
-            // math.min insures that we do not go over the maximum paper capacity.
             int refillAmount = Math.min(remainingPagesToPrint, this.maximumPaperCapacity - this.currentPaperCapacity);
-            //this.maximumPaperCapacity - this.currentPaperCapacity);
-            loadPaperIntoMachine(refillAmount, paperType, factory.getPaperInventory());
+            loadPaperIntoMachine(refillAmount, paper, factory.getPaperInventory());
         } catch (NoSpaceForMorePaperException | InsufficientPaperAmountInStorageException e) {
             throw new RuntimeException(e);
         }
     }
-
 
     public double printingTimeEstimation(Publication publication){
         double est = ((double)publication.getNumberOfPages() / (double)this.printingSpeed) / 60;
