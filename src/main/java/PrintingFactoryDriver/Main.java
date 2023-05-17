@@ -338,6 +338,7 @@ public class Main {
                             throw new RuntimeException(e);
                         }
 
+
                         try {
                             factory.printingOrder(numberOfPages, paper, newspaper, isColor);
                         } catch (InsufficientPaperAmountInStorageException | NoSuitableMachineException |
