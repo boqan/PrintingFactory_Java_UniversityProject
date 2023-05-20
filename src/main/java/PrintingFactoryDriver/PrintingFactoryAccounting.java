@@ -2,19 +2,24 @@ package PrintingFactoryDriver;
 
 import Interfaces.Accounting;
 import PrintingFactoryEmployees.Employee;
+import PrintingFactoryProducts.PageSize;
 import PrintingFactoryProducts.PaperType;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class PrintingFactoryAccounting implements Comparable<PrintingFactoryAccounting>, Serializable, Accounting {
 
     private String name;
-    private Map<PaperType, Double> paperPrices;
+    private Map<Paper, Double> paperPrices;
     private double SalaryExpenses;
     private double PaperExpenses;
     private double income;
@@ -24,8 +29,10 @@ public class PrintingFactoryAccounting implements Comparable<PrintingFactoryAcco
         this.bonusIncomeTarget = bonusIncomeTarget;
         this.paperPrices = new HashMap<>();
         this.paperPrices =
-                Stream.of(PaperType.values())
-                        .collect(Collectors.toMap(paperType -> paperType, paperType -> 0.0));
+                Arrays.stream(PageSize.values())
+                        .flatMap(pageSize -> Arrays.stream(PaperType.values())
+                                .map(paperType -> new Paper(pageSize, paperType)))
+                        .collect(Collectors.toMap(Function.identity(), paper -> 0.0));
         initializePaperPrices();
         this.SalaryExpenses = 0;
         this.PaperExpenses = 0;
@@ -35,32 +42,43 @@ public class PrintingFactoryAccounting implements Comparable<PrintingFactoryAcco
 
     //----------------------------Paper prices helper functions, getters and setters----------------------------
     public void initializePaperPrices(){
-        this.paperPrices.put(PaperType.GLOSSY, 0.5);
-        this.paperPrices.put(PaperType.NORMAL, 0.25);
-        this.paperPrices.put(PaperType.NEWSPAPER, 0.1);
+        // Initialize all paper types with placeholder prices
+
+        this.paperPrices.replaceAll((paper, price) -> {
+            switch (paper.getPaperType()) {
+                case GLOSSY:
+                    return 0.5;
+                case NORMAL:
+                    return 0.25;
+                case NEWSPAPER:
+                    return 0.1;
+                default:
+                    return 0.0;
+            }
+        });
     }
 
-    public void setPaperPrice(PaperType paperType, double price){
-        this.paperPrices.put(paperType, price);
+    public void setPaperPrice(Paper paper, double price){
+        this.paperPrices.put(paper, price);
     }
 
-    public double getPaperPrice(PaperType paperType){
-        return this.paperPrices.get(paperType);
+    public double getPaperPrice(Paper paper){
+        return this.paperPrices.get(paper);
     }
 
 
     //----------------------------calculate expenses and income----------------------------
 
     // simply calculates the actual expense, does not add or remove anything to the expenses field of the class
-    public double calculatePaperExpenses(int amount, PaperType paperType){
+    public double calculatePaperExpenses(int amount, Paper paper){
         if(amount <= 0)
             throw new IllegalArgumentException("Amount cannot be below or equal to zero");
 
-        return amount * this.paperPrices.get(paperType);
+        return amount * this.paperPrices.get(paper);
     }
     // uses the above method and adds the paperexpense to the field
-    public void addPaperExpense(int PaperAmount, PaperType paperType){
-        this.PaperExpenses += calculatePaperExpenses(PaperAmount, paperType);
+    public void addPaperExpense(int PaperAmount, Paper paper){
+        this.PaperExpenses += calculatePaperExpenses(PaperAmount, paper);
     }
 
 
@@ -81,7 +99,7 @@ public class PrintingFactoryAccounting implements Comparable<PrintingFactoryAcco
         return true;
     }
 
-    public double pricePerCopyEstimation(int amountOfCopies, PaperType paperType, int AmountOfCopiesRequiredForDiscount, double discountPercentage){
+    public double pricePerCopyEstimation(int amountOfCopies, Paper paper, int AmountOfCopiesRequiredForDiscount, double discountPercentage, double markupPerCopyPercentage){
         if (amountOfCopies <= 0) {
             throw new IllegalArgumentException("Amount of copies cannot be below or equal to zero");
         }
@@ -91,27 +109,30 @@ public class PrintingFactoryAccounting implements Comparable<PrintingFactoryAcco
         if (discountPercentage <= 0) {
             throw new IllegalArgumentException("Discount percentage must be above zero");
         }
-        if (paperType == null) {
+        if (paper == null) {
             throw new IllegalArgumentException("Paper type cannot be null");
         }
-        double pricePerCopy = this.paperPrices.get(paperType);
+        if(markupPerCopyPercentage <= 0){
+            throw new IllegalArgumentException("Markup percentage must be above zero");
+        }
+        double pricePerCopy = this.paperPrices.get(paper);
+        pricePerCopy *= (1 + markupPerCopyPercentage);
 
         if (amountOfCopies >= AmountOfCopiesRequiredForDiscount) {
             pricePerCopy *= (1 - discountPercentage);
         }
-
-        double discountDecimal = discountPercentage / 100.0;
-        return amountOfCopies * pricePerCopy;
+        // converts to bigdecimal for the rounding then converts back to double
+        return BigDecimal.valueOf(pricePerCopy).setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
 
-    public double priceOfEntireOrderEstimation(int amountOfCopies, PaperType paperType, int AmountOfCopiesRequiredForDiscount, double discountPercentage){
-        return pricePerCopyEstimation(amountOfCopies, paperType, AmountOfCopiesRequiredForDiscount, discountPercentage) * amountOfCopies;
+    public double priceOfEntireOrderEstimation(int amountOfCopies, Paper paper, int AmountOfCopiesRequiredForDiscount, double discountPercentage, double markupPerCopyPercentage){
+        return pricePerCopyEstimation(amountOfCopies, paper, AmountOfCopiesRequiredForDiscount, discountPercentage, markupPerCopyPercentage) * amountOfCopies;
     }
 
     // calculates and adds the income of an entire printing order to the income field, using the above methods for calculations
-    public void AddToIncome(int amountOfCopies, PaperType paperType, int AmountOfCopiesRequiredForDiscount, double discountPercentage)
+    public void AddToIncome(int amountOfCopies, Paper paper, int AmountOfCopiesRequiredForDiscount, double discountPercentage, double markupPerCopyPercentage)
     {
-        this.income += priceOfEntireOrderEstimation(amountOfCopies, paperType, AmountOfCopiesRequiredForDiscount, discountPercentage);
+        this.income += priceOfEntireOrderEstimation(amountOfCopies, paper, AmountOfCopiesRequiredForDiscount, discountPercentage, markupPerCopyPercentage);
     }
 
     // NOT NEEDED RIGHT NOW - SALARY EXPENSES IS UPDATED IN calculateIndividualSalaryExpenses and the add methods of employees in PrintingFactory
@@ -127,7 +148,7 @@ public class PrintingFactoryAccounting implements Comparable<PrintingFactoryAcco
     public String getName() {
         return name;
     }
-    public Map<PaperType, Double> getPaperPrices() {
+    public Map<Paper, Double> getPaperPrices() {
         return paperPrices;
     }
 
