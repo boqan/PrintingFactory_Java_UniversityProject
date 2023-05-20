@@ -14,12 +14,15 @@ import static org.mockito.Mockito.when;
 class PrintingFactoryAccountingTest {
 
     private PrintingFactoryAccounting accounting;
+
+    private Accounting accountingMock;
     private Paper paper;
 
     @BeforeEach
     void setUp(){
         accounting = new PrintingFactoryAccounting(0.1, "EasyConsult");
         paper = Mockito.mock(Paper.class);
+        accountingMock = Mockito.mock(Accounting.class);
         when(paper.getPaperType()).thenReturn(PaperType.GLOSSY);
     }
 
@@ -33,6 +36,7 @@ class PrintingFactoryAccountingTest {
 
     @Test
     void calculatePaperExpensesWorkingTest() {
+        Paper paper = new Paper(PageSize.A2, PaperType.GLOSSY);
         assertEquals(25, accounting.calculatePaperExpenses(50, paper));
     }
 
@@ -63,36 +67,40 @@ class PrintingFactoryAccountingTest {
 
     @Test
     void pricePerCopyEstimation_negativeAmountOfCopies_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> accounting.pricePerCopyEstimation(-10, paper, 50, 0.1));
+        assertThrows(IllegalArgumentException.class, () -> accounting.pricePerCopyEstimation(-100, paper, 0, 0.1, 0.5));
     }
 
     @Test
     void pricePerCopyEstimation_zeroAmountOfCopies_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> accounting.pricePerCopyEstimation(0, paper, 50, 0.1));
+        assertThrows(IllegalArgumentException.class, () -> accounting.pricePerCopyEstimation(0, paper, 50, 0.1, 0.5));
     }
 
     @Test
     void pricePerCopyEstimation_negativeDiscountRequired_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> accounting.pricePerCopyEstimation(100, paper, -50, 0.1));
+        assertThrows(IllegalArgumentException.class, () -> accounting.pricePerCopyEstimation(100, paper, -50, 0.1, 0.5));
     }
 
     @Test
     void pricePerCopyEstimation_zeroDiscountRequired_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> accounting.pricePerCopyEstimation(100, paper, 0, 0.1));
+        assertThrows(IllegalArgumentException.class, () -> accounting.pricePerCopyEstimation(100, paper, 0, 0.1, 0.5));
     }
 
     @Test
     void pricePerCopyEstimation_negativeDiscountPercentage_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> accounting.pricePerCopyEstimation(100, paper, 50, -0.1));
+        assertThrows(IllegalArgumentException.class, () -> accounting.pricePerCopyEstimation(100, paper, 50, -0.1, 0.5));
     }
 
     @Test
     void pricePerCopyEstimation_zeroDiscountPercentage_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> accounting.pricePerCopyEstimation(100, paper, 50, 0.0));
+        assertThrows(IllegalArgumentException.class, () -> accounting.pricePerCopyEstimation(100, paper, 50, 0.0, 0.5));
     }
     @Test
     void pricePerCopyEstimation_nullPaperType_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> accounting.pricePerCopyEstimation(100, null, 50, 0.1));
+        assertThrows(IllegalArgumentException.class, () -> accounting.pricePerCopyEstimation(100, null, 50, 0.1, 0.5));
+    }
+    @Test
+    void pricePerCopyEstimation_negativeMarkupPercentage_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> accounting.pricePerCopyEstimation(100, paper, 50, 0.1, -0.5));
     }
 
     @Test
@@ -100,6 +108,6 @@ class PrintingFactoryAccountingTest {
         when(paper.getPaperType()).thenReturn(PaperType.GLOSSY);
         when(paper.getPageSize()).thenReturn(PageSize.A4);
         accounting.setPaperPrice(paper, 0.1);
-        assertEquals(1.0, accounting.pricePerCopyEstimation(100, paper, 50, 0.1));
+        assertEquals(13.5, accounting.pricePerCopyEstimation(100, paper, 50, 0.1, 0.5));
     }
 }

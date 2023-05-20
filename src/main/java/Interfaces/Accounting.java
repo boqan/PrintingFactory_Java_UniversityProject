@@ -14,9 +14,9 @@ public interface Accounting {
 
     boolean RemoveIndividualSalaryExpenses(Employee employee);
 
-    double pricePerCopyEstimation(int amountOfCopies, Paper paper, int AmountOfCopiesRequiredForDiscount, double discountPercentage);
+    double pricePerCopyEstimation(int amountOfCopies, Paper paper, int AmountOfCopiesRequiredForDiscount, double discountPercentage, double markupPerCopyPercentage);
 
-    double priceOfEntireOrderEstimation(int amountOfCopies, Paper paper, int AmountOfCopiesRequiredForDiscount, double discountPercentage);
+    double priceOfEntireOrderEstimation(int amountOfCopies, Paper paper, int AmountOfCopiesRequiredForDiscount, double discountPercentage, double markupPerCopyPercentage);
 
-    void AddToIncome(int amountOfCopies, Paper paper, int AmountOfCopiesRequiredForDiscount, double discountPercentage);
+    void AddToIncome(int amountOfCopies, Paper paper, int AmountOfCopiesRequiredForDiscount, double discountPercentage, double markupPerCopyPercentage);
 }

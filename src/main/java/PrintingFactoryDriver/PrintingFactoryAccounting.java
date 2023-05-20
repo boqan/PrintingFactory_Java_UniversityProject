@@ -6,6 +6,8 @@ import PrintingFactoryProducts.PageSize;
 import PrintingFactoryProducts.PaperType;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +42,8 @@ public class PrintingFactoryAccounting implements Comparable<PrintingFactoryAcco
 
     //----------------------------Paper prices helper functions, getters and setters----------------------------
     public void initializePaperPrices(){
-        // Initialize all paper types with their respective prices
+        // Initialize all paper types with placeholder prices
+
         this.paperPrices.replaceAll((paper, price) -> {
             switch (paper.getPaperType()) {
                 case GLOSSY:
@@ -96,7 +99,7 @@ public class PrintingFactoryAccounting implements Comparable<PrintingFactoryAcco
         return true;
     }
 
-    public double pricePerCopyEstimation(int amountOfCopies, Paper paper, int AmountOfCopiesRequiredForDiscount, double discountPercentage){
+    public double pricePerCopyEstimation(int amountOfCopies, Paper paper, int AmountOfCopiesRequiredForDiscount, double discountPercentage, double markupPerCopyPercentage){
         if (amountOfCopies <= 0) {
             throw new IllegalArgumentException("Amount of copies cannot be below or equal to zero");
         }
@@ -109,24 +112,27 @@ public class PrintingFactoryAccounting implements Comparable<PrintingFactoryAcco
         if (paper == null) {
             throw new IllegalArgumentException("Paper type cannot be null");
         }
+        if(markupPerCopyPercentage <= 0){
+            throw new IllegalArgumentException("Markup percentage must be above zero");
+        }
         double pricePerCopy = this.paperPrices.get(paper);
+        pricePerCopy *= (1 + markupPerCopyPercentage);
 
         if (amountOfCopies >= AmountOfCopiesRequiredForDiscount) {
             pricePerCopy *= (1 - discountPercentage);
         }
-
-        double discountDecimal = discountPercentage / 100.0;
-        return amountOfCopies * pricePerCopy;
+        // converts to bigdecimal for the rounding then converts back to double
+        return BigDecimal.valueOf(pricePerCopy).setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
 
-    public double priceOfEntireOrderEstimation(int amountOfCopies, Paper paper, int AmountOfCopiesRequiredForDiscount, double discountPercentage){
-        return pricePerCopyEstimation(amountOfCopies, paper, AmountOfCopiesRequiredForDiscount, discountPercentage) * amountOfCopies;
+    public double priceOfEntireOrderEstimation(int amountOfCopies, Paper paper, int AmountOfCopiesRequiredForDiscount, double discountPercentage, double markupPerCopyPercentage){
+        return pricePerCopyEstimation(amountOfCopies, paper, AmountOfCopiesRequiredForDiscount, discountPercentage, markupPerCopyPercentage) * amountOfCopies;
     }
 
     // calculates and adds the income of an entire printing order to the income field, using the above methods for calculations
-    public void AddToIncome(int amountOfCopies, Paper paper, int AmountOfCopiesRequiredForDiscount, double discountPercentage)
+    public void AddToIncome(int amountOfCopies, Paper paper, int AmountOfCopiesRequiredForDiscount, double discountPercentage, double markupPerCopyPercentage)
     {
-        this.income += priceOfEntireOrderEstimation(amountOfCopies, paper, AmountOfCopiesRequiredForDiscount, discountPercentage);
+        this.income += priceOfEntireOrderEstimation(amountOfCopies, paper, AmountOfCopiesRequiredForDiscount, discountPercentage, markupPerCopyPercentage);
     }
 
     // NOT NEEDED RIGHT NOW - SALARY EXPENSES IS UPDATED IN calculateIndividualSalaryExpenses and the add methods of employees in PrintingFactory

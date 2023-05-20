@@ -8,13 +8,13 @@ import PrintingFactoryExceptions.PaperMismatchException;
 import PrintingFactoryProducts.*;
 import PrintingFactoryMachinery.*;
 
-import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Optional;
 import java.util.Scanner;
 
-import static PrintingFactoryProducts.PageSize.A2;
+import static PrintingFactoryProducts.PaperType.*;
 
 
 public class Main {
@@ -36,7 +36,8 @@ public class Main {
             System.out.println("6. Save current state");
             System.out.println("7. Load previous state");
             System.out.println("8. Print factory state");
-            System.out.println("9. Exit");
+            System.out.println("9. Accounting reports");
+            System.out.println("10. Exit");
             System.out.println("******************************************");
             System.out.print("Please choose an option: ");
 
@@ -123,10 +124,10 @@ public class Main {
                     scanner.nextLine();
 
                     PaperType paperType = switch (case3_option_papertype) {
-                        case 1 -> PaperType.GLOSSY;
-                        case 2 -> PaperType.NEWSPAPER;
-                        case 3 -> PaperType.NORMAL;
-                        default -> PaperType.NORMAL;
+                        case 1 -> GLOSSY;
+                        case 2 -> NEWSPAPER;
+                        case 3 -> NORMAL;
+                        default -> NORMAL;
                     };
 
                     System.out.println("Please provide the paper size of the machine:");
@@ -231,10 +232,10 @@ public class Main {
                     }while (case5_option_papertype != 1 && case5_option_papertype != 2 && case5_option_papertype != 3);
 
                     paperType = switch (case5_option_papertype) {
-                        case 1 -> PaperType.GLOSSY;
-                        case 2 -> PaperType.NEWSPAPER;
-                        case 3 -> PaperType.NORMAL;
-                        default -> PaperType.NORMAL;
+                        case 1 -> GLOSSY;
+                        case 2 -> NEWSPAPER;
+                        case 3 -> NORMAL;
+                        default -> NORMAL;
                     };
 
                     int case5_option_pagesize;
@@ -369,13 +370,273 @@ public class Main {
                     System.out.println("Printing the accounting state...");
                     System.out.println(accounting);
                 case 9:
+                    System.out.println("Accounting menu:");
+                    System.out.println("1. Add to company income");
+                    System.out.println("2. Add to company paper expenses");
+                    System.out.println("3. Add to company salary expenses");
+                    System.out.println("4. Set the manager bonus income target");
+                    System.out.println("5. Set the price of a type of paper");
+                    System.out.println("6. Get the prices of all types of paper");
+                    System.out.println("7. Go Back to main menu");
+
+                    int case9_option;
+                    do {
+                        System.out.println("Please choose an option from the menu:");
+                        case9_option = scanner.nextInt();
+                        scanner.nextLine();
+
+                        if(case9_option != 1 && case9_option != 2 && case9_option != 3 && case9_option != 4
+                                && case9_option != 5 && case9_option != 6 && case9_option != 7)
+                            System.out.println("Invalid option. Please choose a valid option from the menu.");
+                    } while(case9_option != 1 && case9_option != 2 && case9_option != 3
+                            && case9_option != 4 && case9_option != 5 && case9_option != 6 && case9_option != 7);
+
+                    switch (case9_option) {
+                        case 1:
+                            System.out.println("Please provide the parameters of the order to add to the company income:");
+                            System.out.println("Please provide the number of copies for the order:");
+                            int numberOfCopies = scanner.nextInt();
+                            scanner.nextLine();
+
+                            int case9_option_papertype;
+                            do {
+                                System.out.println("Choose the paper type for the calculation :");
+                                System.out.println("1. Glossy");
+                                System.out.println("2. Newspaper");
+                                System.out.println("3. Normal");
+                                case5_option_papertype = scanner.nextInt();
+                                scanner.nextLine();
+
+                                if (case5_option_papertype != 1 && case5_option_papertype != 2 && case5_option_papertype != 3)
+                                    System.out.println("Invalid option. Please choose a valid option from the menu.");
+                            }while (case5_option_papertype != 1 && case5_option_papertype != 2 && case5_option_papertype != 3);
+
+                            PaperType paperType_case9_1 = switch (case5_option_papertype) {
+                                case 1 -> GLOSSY;
+                                case 2 -> NEWSPAPER;
+                                case 3 -> NORMAL;
+                                default -> NORMAL;
+                            };
+
+                            int case9_option_pagesize;
+                            do {
+                                System.out.println("Please provide the page size of the paper:");
+                                System.out.println("1. A1");
+                                System.out.println("2. A2");
+                                System.out.println("3. A3");
+                                System.out.println("4. A4");
+                                System.out.println("5. A5");
+                                case5_option_pagesize = scanner.nextInt();
+                                scanner.nextLine();
+
+                                if(case5_option_pagesize != 1 && case5_option_pagesize != 2 && case5_option_pagesize != 3 && case5_option_pagesize != 4 && case5_option_pagesize != 5)
+                                    System.out.println("Invalid option. Please choose a valid option from the menu.");
+
+                            } while(case5_option_pagesize != 1 && case5_option_pagesize != 2 && case5_option_pagesize != 3 && case5_option_pagesize != 4 && case5_option_pagesize != 5);
+
+                            PageSize pageSize_case9_1 = switch (case5_option_pagesize) {
+                                case 1 -> pageSize = PageSize.A1;
+                                case 2 -> pageSize = PageSize.A2;
+                                case 3 -> pageSize = PageSize.A3;
+                                case 4 -> pageSize = PageSize.A4;
+                                case 5 -> pageSize = PageSize.A5;
+                                default -> PageSize.A2;
+                            };
+
+                            Paper paper_case9_AddToIncome = new Paper(pageSize_case9_1, paperType_case9_1);
+
+                            System.out.println("Please provide the number of copies in the order needed for a discount:");
+                            int numberOfCopiesForDiscount = scanner.nextInt();
+                            scanner.nextLine();
+
+                            System.out.println("Please provide the discount percentage (double):");
+                            double discountPercentage = scanner.nextDouble();
+                            scanner.nextLine();
+
+                            System.out.println("Please provide the factory markup percentage (double):");
+                            double factoryMarkupPercentage = scanner.nextDouble();
+                            scanner.nextLine();
+
+                            accounting.AddToIncome(numberOfCopies, paper_case9_AddToIncome, numberOfCopiesForDiscount, discountPercentage, factoryMarkupPercentage);
+                            System.out.println("The order was added to the company income.");
+                            System.out.println("The company income is now: " + accounting.getIncome());
+                            break;
+
+                        case 2:
+                            System.out.println("Please provide the amount of paper and the paper properties to calculate and add to " +
+                                    "the company paper expenses:");
+
+                            System.out.println("Please provide the paper type of the paper:");
+                            int case9_2_option_papertype;
+                            do {
+                                System.out.println("Choose the paper type for the paper :");
+                                System.out.println("1. Glossy");
+                                System.out.println("2. Newspaper");
+                                System.out.println("3. Normal");
+                                case5_option_papertype = scanner.nextInt();
+                                scanner.nextLine();
+
+                                if (case5_option_papertype != 1 && case5_option_papertype != 2 && case5_option_papertype != 3)
+                                    System.out.println("Invalid option. Please choose a valid option from the menu.");
+                            }while (case5_option_papertype != 1 && case5_option_papertype != 2 && case5_option_papertype != 3);
+
+                            PaperType paperType_case9_2 = switch (case5_option_papertype) {
+                                case 1 -> GLOSSY;
+                                case 2 -> NEWSPAPER;
+                                case 3 -> NORMAL;
+                                default -> NORMAL;
+                            };
+
+                            int case9_2_option_pagesize;
+                            do {
+                                System.out.println("Please provide the page size of the paper:");
+                                System.out.println("1. A1");
+                                System.out.println("2. A2");
+                                System.out.println("3. A3");
+                                System.out.println("4. A4");
+                                System.out.println("5. A5");
+                                case5_option_pagesize = scanner.nextInt();
+                                scanner.nextLine();
+
+                                if(case5_option_pagesize != 1 && case5_option_pagesize != 2 && case5_option_pagesize != 3 && case5_option_pagesize != 4 && case5_option_pagesize != 5)
+                                    System.out.println("Invalid option. Please choose a valid option from the menu.");
+
+                            } while(case5_option_pagesize != 1 && case5_option_pagesize != 2 && case5_option_pagesize != 3 && case5_option_pagesize != 4 && case5_option_pagesize != 5);
+
+                            PageSize pageSize_case9_2 = switch (case5_option_pagesize) {
+                                case 1 -> pageSize = PageSize.A1;
+                                case 2 -> pageSize = PageSize.A2;
+                                case 3 -> pageSize = PageSize.A3;
+                                case 4 -> pageSize = PageSize.A4;
+                                case 5 -> pageSize = PageSize.A5;
+                                default -> PageSize.A2;
+                            };
+
+                            System.out.println("Please provide the paper amount (int):");
+                            int paperAmount = scanner.nextInt();
+                            scanner.nextLine();
+
+                            Paper paper_case9_2_AddToPaperExpenses = new Paper(pageSize_case9_2, paperType_case9_2);
+
+                            accounting.addPaperExpense(paperAmount, paper_case9_2_AddToPaperExpenses);
+                            System.out.println("The paper expenses were added to the company paper expenses.");
+                            System.out.println("The company paper expenses are now: " + accounting.getPaperExpenses());
+                            break;
+                        case 3:
+                            System.out.println("Please provide the name of the employee you want to add the expenses for, from the provided list:");
+                            factory.getEmployeeList().forEach(employee -> {
+                                System.out.println("Employee list:");
+                                System.out.println(employee.getName());
+                            });
+                            String employeeName = scanner.nextLine();
+
+                            // try to find the employee in the list, if there is one, optional.ispresent would be true
+                            Optional<Employee> employeeOptional = factory.getEmployeeList().stream()
+                                    .filter(employee -> employee.getName().equals(employeeName))
+                                    .findFirst();
+                            // always assign an optional before checking if its present
+                            if (employeeOptional.isPresent()) {
+                                Employee employee = employeeOptional.get();
+                                accounting.calculateIndividualSalaryExpenses(employee);
+                                System.out.println("The employee expenses were added to the company employee expenses.");
+                                System.out.println("The company employee expenses are now: " + accounting.getSalaryExpenses());
+                            } else {
+                                System.out.println("The employee does not exist in the company.");
+                            }
+                            break;
+                        case 4:
+                            System.out.println("Please provide the amount of money to set as the company bonus income target:");
+                            double amount = scanner.nextDouble();
+                            scanner.nextLine();
+                            accounting.setBonusIncomeTarget(amount);
+                            System.out.println("The company bonus income target is now: " + accounting.getBonusIncomeTarget());
+                            break;
+                        case 5:
+                            System.out.println("Please provide the paper type of the paper:");
+                            int case9_5_option_papertype;
+                            do {
+                                System.out.println("Choose the paper type for the paper :");
+                                System.out.println("1. Glossy");
+                                System.out.println("2. Newspaper");
+                                System.out.println("3. Normal");
+                                case5_option_papertype = scanner.nextInt();
+                                scanner.nextLine();
+
+                                if (case5_option_papertype != 1 && case5_option_papertype != 2 && case5_option_papertype != 3)
+                                    System.out.println("Invalid option. Please choose a valid option from the menu.");
+                            }while (case5_option_papertype != 1 && case5_option_papertype != 2 && case5_option_papertype != 3);
+
+                            PaperType paperType_case9_5 = switch (case5_option_papertype) {
+                                case 1 -> GLOSSY;
+                                case 2 -> NEWSPAPER;
+                                case 3 -> NORMAL;
+                                default -> NORMAL;
+                            };
+
+                            System.out.println("Please provide the price of the paper:");
+                            double price_ofPaper_case9_5 = scanner.nextDouble();
+                            scanner.nextLine();
+
+                            System.out.println("Would you like to set the same price for all sizes of this type of paper? (Y/N)");
+                            String case9_5_option_sameprice = scanner.nextLine();
+                            // flag to activate the same price for all sizes
+                            boolean setSamePriceForAllSizes = case9_5_option_sameprice.equalsIgnoreCase("Y");
+
+                            int case9_5_option_pagesize;
+                            do {
+                                System.out.println("Please provide the page size of the paper:");
+                                System.out.println("1. A1");
+                                System.out.println("2. A2");
+                                System.out.println("3. A3");
+                                System.out.println("4. A4");
+                                System.out.println("5. A5");
+                                case5_option_pagesize = scanner.nextInt();
+                                scanner.nextLine();
+
+                                if(case5_option_pagesize != 1 && case5_option_pagesize != 2 && case5_option_pagesize != 3 && case5_option_pagesize != 4 && case5_option_pagesize != 5)
+                                    System.out.println("Invalid option. Please choose a valid option from the menu.");
+
+                            } while(case5_option_pagesize != 1 && case5_option_pagesize != 2 && case5_option_pagesize != 3 && case5_option_pagesize != 4 && case5_option_pagesize != 5);
+
+                            PageSize pageSize_case9_5 = switch (case5_option_pagesize) {
+                                case 1 -> pageSize = PageSize.A1;
+                                case 2 -> pageSize = PageSize.A2;
+                                case 3 -> pageSize = PageSize.A3;
+                                case 4 -> pageSize = PageSize.A4;
+                                case 5 -> pageSize = PageSize.A5;
+                                default -> PageSize.A2;
+                            };
+
+                            if(setSamePriceForAllSizes) {
+                                // If yes, iterate over all page sizes, create the paper and set the price
+                                System.out.println("Setting the same price for all sizes of this type of paper...");
+                                for (PageSize pageSizeIterator : PageSize.values()) {
+                                    Paper paper_case9_option5 = new Paper(pageSizeIterator, paperType_case9_5);
+                                    accounting.setPaperPrice(paper_case9_option5, price_ofPaper_case9_5);
+                                }
+                            } else {
+                                // If no, create the paper with the selected page size and set the price
+                                System.out.println("Setting the price for the selected size of this type of paper...");
+                                Paper paper_case9_option5_2 = new Paper(pageSize_case9_5, paperType_case9_5);
+                                accounting.setPaperPrice(paper_case9_option5_2, price_ofPaper_case9_5);
+                            }
+                            break;
+                        case 6:
+                            System.out.println("The prices of all types of paper are:");
+                            System.out.println(accounting.getPaperPrices());
+                            break;
+                        case 7:
+                            System.out.println("Going back to the main menu...");
+                            break;
+                    }
+                case 10:
                     System.out.println("Exiting the program...");
                     break;
                 default:
                     System.out.println("Invalid option. Please choose a valid option from the menu.");
                     break;
             }
-        } while (option != 9);
+        } while (option != 10);
 
         scanner.close();
     }

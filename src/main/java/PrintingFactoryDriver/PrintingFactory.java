@@ -120,7 +120,9 @@ public class PrintingFactory implements Comparable<PrintingFactory>, Serializabl
         }
         // if all checks are passed, the print is executed
         try {
-            suitableMachine.loadPaperIntoMachine(amountOfCopies, paper, this.getPaperInventory());
+            // load the machine with the minimum of its maximum capacity and the total number of pages to be printed
+            int pagesToLoad = Math.min(suitableMachine.getMaximumPaperCapacity(), amountOfCopies * publication.getNumberOfPages());
+            suitableMachine.loadPaperIntoMachine(pagesToLoad, paper, this.getPaperInventory());
             suitableMachine.printPublication(publication, paper);
         } catch (NoPaperInMachineException | NoSpaceForMorePaperException | InsufficientPaperAmountInStorageException e) {
             throw new RuntimeException(e);

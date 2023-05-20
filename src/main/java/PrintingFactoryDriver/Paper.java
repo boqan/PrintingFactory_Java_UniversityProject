@@ -3,9 +3,10 @@ package PrintingFactoryDriver;
 import PrintingFactoryProducts.PageSize;
 import PrintingFactoryProducts.PaperType;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Paper {
+public class Paper implements Comparable<Paper>, Serializable {
     private final PageSize pageSize;
     private final PaperType paperType;
 
@@ -34,6 +35,25 @@ public class Paper {
     @Override
     public int hashCode() {
         return Objects.hash(pageSize, paperType);
+    }
+
+    @Override
+    public String toString() {
+        return "Paper{" +
+                "pageSize=" + pageSize +
+                ", paperType=" + paperType +
+                '}';
+    }
+
+    @Override
+    public int compareTo(Paper other) {
+        int pageSizeComparison = this.pageSize.compareTo(other.pageSize);
+        if (pageSizeComparison != 0) {
+            return pageSizeComparison;
+        }
+
+        // pageSize are equal, compare paperType
+        return this.paperType.compareTo(other.paperType);
     }
 }
 

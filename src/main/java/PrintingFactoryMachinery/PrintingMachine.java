@@ -64,6 +64,14 @@ public class PrintingMachine implements Comparable<PrintingMachine>, Serializabl
         this.currentPaperCapacity = currentPaperCapacity;
     }
 
+    public PrintingFactory getFactory() {
+        return factory;
+    }
+
+    public void setFactory(PrintingFactory factory) {
+        this.factory = factory;
+    }
+
     public int getPrintingSpeed() {
         return printingSpeed;
     }
@@ -126,6 +134,9 @@ public class PrintingMachine implements Comparable<PrintingMachine>, Serializabl
         if(numberOfPages < 0){
             throw new IllegalArgumentException("Number of pages cannot be negative");
         }
+        System.out.println("Current paper capacity: " + this.currentPaperCapacity);
+        System.out.println("Number of pages to add: " + numberOfPages);
+        System.out.println("Maximum paper capacity: " + this.maximumPaperCapacity);
         if(this.currentPaperCapacity + numberOfPages > this.maximumPaperCapacity){
             throw new NoSpaceForMorePaperException("No space for more paper");
         }
@@ -157,7 +168,7 @@ public class PrintingMachine implements Comparable<PrintingMachine>, Serializabl
     public int printPages(int remainingPagesToPrint, Paper paper, Publication publication) {
         if (this.currentPaperCapacity >= remainingPagesToPrint) {
             System.out.println("Printing " + remainingPagesToPrint + " pages");
-            this.currentPaperCapacity -= publication.getNumberOfPages();
+            this.currentPaperCapacity -= remainingPagesToPrint;
             return 0;
         } else if (this.currentPaperCapacity > 0) {
             System.out.println("Printing " + this.currentPaperCapacity + " pages...");
